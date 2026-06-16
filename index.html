@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RiStox | Indian Market Analytics</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="stylesheet" href="/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">R</span>
+        <div>
+          <h1>RiStox</h1>
+          <p>NSE/BSE analytics terminal</p>
+        </div>
+      </div>
+
+      <form id="searchForm" class="search-panel" autocomplete="off">
+        <label class="sr-only" for="tickerInput">Search Indian stock ticker</label>
+        <input id="tickerInput" type="search" placeholder="Search NSE/BSE ticker, e.g. RELIANCE.NS, TCS.NS, INFY.NS" />
+        <button type="submit">
+          <span class="button-text">Analyze</span>
+          <span class="spinner" aria-hidden="true"></span>
+        </button>
+      </form>
+    </header>
+
+    <section class="ticker-strip" aria-label="Live market index ticker">
+      <div class="ticker-card" id="niftyCard">
+        <span>NIFTY 50</span>
+        <strong>--</strong>
+        <em>--</em>
+      </div>
+      <div class="ticker-card" id="sensexCard">
+        <span>SENSEX</span>
+        <strong>--</strong>
+        <em>--</em>
+      </div>
+      <div class="ticker-meta">
+        <span>Polling every 10s</span>
+        <strong id="lastUpdated">Waiting for market data</strong>
+      </div>
+    </section>
+
+    <main>
+      <div id="notification" class="notification" role="status"></div>
+
+      <section id="landingPage" class="landing-page">
+        <div class="landing-copy">
+          <span class="eyebrow">Indian market intelligence</span>
+          <h2>Search any NSE/BSE stock.</h2>
+          <p>Enter a ticker to open a live analytics workspace with fundamentals, Fear & Greed sentiment, ML forecast, sector peers, and FinBERT-scored headlines.</p>
+        </div>
+
+        <form id="landingSearchForm" class="landing-search" autocomplete="off">
+          <label class="sr-only" for="landingTickerInput">Search Indian stock ticker</label>
+          <input id="landingTickerInput" type="search" placeholder="Try TCS.NS, RELIANCE.NS, INFY.NS" />
+          <button type="submit">
+            <span class="button-text">Search Stock</span>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
+        </form>
+
+        <div class="quick-picks" aria-label="Popular stock searches">
+          <button type="button" data-ticker="RELIANCE.NS">RELIANCE</button>
+          <button type="button" data-ticker="TCS.NS">TCS</button>
+          <button type="button" data-ticker="HDFCBANK.NS">HDFC Bank</button>
+          <button type="button" data-ticker="INFY.NS">Infosys</button>
+        </div>
+
+        <div class="landing-preview" aria-hidden="true">
+          <div>
+            <span>Fear & Greed</span>
+            <strong>Live</strong>
+          </div>
+          <div>
+            <span>Forecast</span>
+            <strong>7D</strong>
+          </div>
+          <div>
+            <span>Market</span>
+            <strong>NSE/BSE</strong>
+          </div>
+        </div>
+      </section>
+
+      <section id="dashboard" class="dashboard hidden">
+        <section class="hero-grid">
+        <article class="sentiment-panel">
+          <div class="section-heading">
+            <span>Composite Signal</span>
+            <h2>Fear & Greed</h2>
+          </div>
+          <div class="gauge-wrap">
+            <svg class="gauge" viewBox="0 0 240 140" role="img" aria-label="Fear and greed sentiment gauge">
+              <defs>
+                <linearGradient id="sentimentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#ef4444" />
+                  <stop offset="50%" stop-color="#facc15" />
+                  <stop offset="100%" stop-color="#22c55e" />
+                </linearGradient>
+              </defs>
+              <path class="gauge-track" d="M 30 120 A 90 90 0 0 1 210 120" />
+              <path class="gauge-fill" d="M 30 120 A 90 90 0 0 1 210 120" />
+              <line id="gaugeNeedle" class="gauge-needle" x1="120" y1="120" x2="120" y2="44" />
+              <circle class="gauge-hub" cx="120" cy="120" r="8" />
+            </svg>
+            <div class="gauge-score">
+              <strong id="sentimentScore">--</strong>
+              <span id="sentimentLabel">Awaiting ticker</span>
+            </div>
+          </div>
+          <div class="sentiment-scale">
+            <span>Extreme Fear</span>
+            <span>Neutral</span>
+            <span>Extreme Greed</span>
+          </div>
+        </article>
+
+        <article class="stock-summary">
+          <div class="section-heading">
+            <span id="companySector">Sector intelligence</span>
+            <h2 id="companyName">Search a ticker</h2>
+          </div>
+          <div class="price-line">
+            <strong id="currentPrice">--</strong>
+            <span id="priceDelta">--</span>
+          </div>
+          <p id="summaryText">Run an analysis to load live pricing, fundamentals, ML forecasts, peer comparisons, and headline sentiment.</p>
+          <div class="signal-row">
+            <div id="recommendationCard" class="recommendation-card hold">
+              <span>News recommendation</span>
+              <strong id="recommendationAction">HOLD</strong>
+              <em id="recommendationConfidence">Awaiting headlines</em>
+            </div>
+            <div class="model-pill">
+              <span>7-day forecast MAPE</span>
+              <strong id="mapeScore">--</strong>
+            </div>
+          </div>
+          <p id="recommendationReason" class="recommendation-reason">Recommendation is generated from article sentiment only.</p>
+        </article>
+        </section>
+
+        <section class="financial-grid" aria-label="Key financial metrics">
+        <article class="metric-card">
+          <span>P/E Ratio</span>
+          <strong id="peRatio">--</strong>
+        </article>
+        <article class="metric-card">
+          <span>Market Cap</span>
+          <strong id="marketCap">--</strong>
+        </article>
+        <article class="metric-card">
+          <span>52W High</span>
+          <strong id="weekHigh">--</strong>
+        </article>
+        <article class="metric-card">
+          <span>52W Low</span>
+          <strong id="weekLow">--</strong>
+        </article>
+        </section>
+
+        <section class="workspace-grid">
+        <article class="chart-panel">
+          <div class="panel-top">
+            <div class="section-heading">
+              <span>Price action</span>
+              <h2>1Y History + ML Projection</h2>
+            </div>
+            <div class="chart-toggles">
+              <label><input type="checkbox" id="toggleSma50" checked /> 50D SMA</label>
+              <label><input type="checkbox" id="toggleSma200" checked /> 200D SMA</label>
+            </div>
+          </div>
+          <div class="chart-frame">
+            <canvas id="priceChart"></canvas>
+          </div>
+        </article>
+
+        <aside class="right-rail">
+          <article class="table-panel">
+            <div class="section-heading">
+              <span>Sector rivals</span>
+              <h2>Peer Comparison</h2>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Ticker</th>
+                    <th>Price</th>
+                    <th>P/E</th>
+                    <th>Market Cap</th>
+                  </tr>
+                </thead>
+                <tbody id="peerTableBody">
+                  <tr><td colspan="4">No peer data loaded</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="news-panel">
+            <div class="section-heading">
+              <span>FinBERT scan</span>
+              <h2>Latest Headlines</h2>
+            </div>
+            <div id="newsFeed" class="news-feed">
+              <p class="empty-state">No headlines loaded</p>
+            </div>
+          </article>
+        </aside>
+        </section>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
